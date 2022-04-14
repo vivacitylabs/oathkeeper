@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -155,7 +156,11 @@ func forwardRequestToSessionStore(r *http.Request, checkSessionURL string, prese
 
 	// We need to make a COPY of the header, not modify r.Header!
 	for k, v := range r.Header {
-		req.Header[k] = v
+		// if accept-encoding contains an encoding, http.DefaultClient disables transparent decompression, so we don't
+		//want to include this header
+		if strings.ToLower(k) != "accept-encoding" {
+			req.Header[k] = v
+		}
 	}
 
 	for k, v := range setHeaders {
